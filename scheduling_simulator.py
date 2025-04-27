@@ -2,6 +2,10 @@ import copy
 from collections import deque
 import matplotlib.pyplot as plt
 
+# ======================
+# Class Definitions
+# ======================
+
 class Process:
     def __init__(self, pid, arrival, burst, priority=None):
         self.pid = pid
@@ -13,6 +17,10 @@ class Process:
         self.end = -1
         self.waiting = 0
         self.turnaround = 0
+
+# ======================
+# Helper Functions
+# ======================
 
 def calculate_metrics(processes, total_time):
     total_waiting = 0
@@ -33,6 +41,11 @@ def calculate_metrics(processes, total_time):
         "Throughput": num_processes / total_time if total_time > 0 else 0
     }
 
+# ======================
+# Scheduling Algorithms
+# ======================
+
+# Algorithm 1: First-Come-First-Served (FCFS)
 def fcfs(processes):
     procs = sorted(copy.deepcopy(processes), key=lambda x: x.arrival)
     current_time = 0
@@ -44,6 +57,7 @@ def fcfs(processes):
         p.end = current_time
     return calculate_metrics(procs, current_time)
 
+# Algorithm 2: Shortest Job First (SJF - Non-preemptive)
 def sjf(processes):
     procs = copy.deepcopy(processes)
     current_time = 0
@@ -62,6 +76,7 @@ def sjf(processes):
             current_time += 1
     return calculate_metrics(completed, current_time)
 
+# Algorithm 3: Round Robin (RR - Quantum=3)
 def round_robin(processes, quantum=3):
     procs = copy.deepcopy(processes)
     queue = deque()
@@ -89,6 +104,7 @@ def round_robin(processes, quantum=3):
             current_time += 1
     return calculate_metrics(completed, current_time)
 
+# Algorithm 4: Priority Scheduling (Non-preemptive)
 def priority_scheduling(processes):
     procs = copy.deepcopy(processes)
     current_time = 0
@@ -107,6 +123,7 @@ def priority_scheduling(processes):
             current_time += 1
     return calculate_metrics(completed, current_time)
 
+# Algorithm 5: Highest Response Ratio Next (HRRN)
 def hrrn(processes):
     procs = copy.deepcopy(processes)
     current_time = 0
@@ -115,7 +132,7 @@ def hrrn(processes):
     while len(completed) < len(procs):
         ready += [p for p in procs if p.arrival <= current_time and p not in completed and p not in ready]
         if ready:
-            ready.sort(key=lambda x: ((current_time - x.arrival) + x.burst)/x.burst, reverse=True)
+            ready.sort(key=lambda x: ((current_time - x.arrival) + x.burst) / x.burst, reverse=True)
             current_process = ready.pop(0)
             current_process.start = current_time
             current_time += current_process.burst
@@ -125,6 +142,7 @@ def hrrn(processes):
             current_time += 1
     return calculate_metrics(completed, current_time)
 
+# Algorithm 6: Multi-Level Queue (MLQ)
 def mlq(processes, high_prio_cutoff=2, quantum=3):
     procs = copy.deepcopy(processes)
     current_time = 0
@@ -153,6 +171,10 @@ def mlq(processes, high_prio_cutoff=2, quantum=3):
             completed.append(current_process)
     return calculate_metrics(completed, current_time)
 
+# ======================
+# Main Simulation and Plotting
+# ======================
+
 if __name__ == "__main__":
     processes = [
         Process(1, 0, 5, 1),
@@ -172,12 +194,10 @@ if __name__ == "__main__":
     results = {}
     for name, func in algorithms.items():
         results[name] = func(processes)
-
     print(f"{'Algorithm':<12} | {'AWT':<6} | {'ATT':<6} | {'CPU Util (%)':<10} | {'Throughput':<10}")
     print("-" * 60)
     for algo, metrics in results.items():
         print(f"{algo:<12} | {metrics['AWT']:.2f} | {metrics['ATT']:.2f} | {metrics['CPU Utilization']:.2f}%      | {metrics['Throughput']:.2f}")
-
     metrics = ['AWT', 'ATT', 'CPU Utilization', 'Throughput']
     fig, axs = plt.subplots(2, 2, figsize=(15, 10))
     for i, metric in enumerate(metrics):
